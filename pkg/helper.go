@@ -17,13 +17,19 @@ func (a Alert) PrepareMessage() string {
 	return fmt.Sprintf("[%s] - %s", a.Type, a.Message)
 }
 
+/*
+func getMaxValues(){
+
+}
+*/
+
 func InsertTelemetryDB(deviceSN string, valueObj []byte, timestamp interface{}) {
 	sqlStatement := `
-INSERT INTO device_telemetries (sn, device_id, value, timestamp)
-VALUES ($1, $2, $3, $4)`
+INSERT INTO device_telemetries (sn, value, timestamp)
+VALUES ($1, $2, $3)`
 
 	_, err := db.Exec(sqlStatement,
-		deviceSN, 1, string(valueObj), timestamp)
+		deviceSN, string(valueObj), timestamp)
 	if err != nil {
 		fmt.Printf(err.Error() + "\n")
 		//ErrorLogger.Println(err.Error())
@@ -36,16 +42,16 @@ VALUES ($1, $2, $3, $4)`
 
 func InsertAlertDB(deviceSN string, msgType string, message string, telemetry_key string, timestamp interface{}) {
 	sqlStatement := `
-INSERT INTO device_alerts (sn, device_id, type, telemetry_key, message, timestamp)
-VALUES ($1, $2, $3, $4, $5, $6)`
+INSERT INTO device_alerts (sn, type, telemetry_key, message, timestamp)
+VALUES ($1, $2, $3, $4, $5)`
 
 	_, err := db.Exec(sqlStatement,
-		deviceSN, 1, msgType, message, telemetry_key, timestamp)
+		deviceSN, msgType, message, telemetry_key, timestamp)
 	if err != nil {
 		fmt.Printf(err.Error() + "\n")
 		//ErrorLogger.Println(err.Error())
 	} else {
-		logMsg := "The telemetry is inserted into the database successfully"
+		logMsg := "The alert is inserted into the database successfully"
 		fmt.Printf(logMsg + "\n")
 		//InfoLogger.Println(logMsg)
 	}
@@ -78,7 +84,6 @@ func CheckDeviceValues(deviceSN string, deviceMap map[string]interface{}) {
 		if k == "temperature" && value > 50 {
 			msg = "Warning - temperature"
 			alert = true
-
 		}
 		if k == "humidity" && value > 70 {
 			msg = "Warning - temperature"
