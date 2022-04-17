@@ -51,17 +51,13 @@ var messagePubHandler mqtt.MessageHandler = func(c mqtt.Client, msg mqtt.Message
 		//ErrorLogger.Println(err.Error())
 	} else {
 
+		// Next -> automatically create database record based on device metadata
+
 		// Kafka Producer
 		ProduceMessage(deviceSN, string(jsonObj))
 
 		// DB Insert Operation
 		valueObj, _ := json.Marshal(deviceMap["values"])
-
-		/*rows, err := db.Query("select * FROM devices WHERE sn = $1;", deviceSN)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer rows.Close()*/
 
 		//async
 		InsertTelemetryDB(deviceSN, valueObj, deviceMap["ts"]) //defer
