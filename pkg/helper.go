@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/joho/godotenv"
+	"github.com/lib/pq"
 )
 
 type Alert struct {
@@ -17,24 +18,34 @@ func (a Alert) PrepareMessage() string {
 	return fmt.Sprintf("[%s] - %s", a.Type, a.Message)
 }
 
-/*
-func getMaxValues(){
+var DeviceDBStruct DeviceDB
 
+func getDeviceInfo(deviceSN string) DeviceDB {
+	var devDBObj DeviceDB
+	devSql := "SELECT id, asset_id, tenant_id, types, max_values FROM devices WHERE sn=$1"
+
+	err := db.QueryRow(devSql, deviceSN).Scan(&devDBObj.ID, &devDBObj.AssetID, &devDBObj.TenantID, pq.Array(&devDBObj.Types), pq.Array(&devDBObj.MaxValues))
+	if err != nil {
+		fmt.Print(err.Error() + "\n")
+	}
+
+	return devDBObj
 }
-*/
 
 func InsertTelemetryDB(deviceSN string, valueObj []byte, timestamp interface{}) {
+	DeviceDBStruct = getDeviceInfo(deviceSN)
+
 	sqlStatement := `
-INSERT INTO device_telemetries (sn, value, timestamp)
-VALUES ($1, $2, $3)`
+INSERT INTO device_telemetries (sn, value, device_id, asset_id, tenant_id, timestamp)
+VALUES ($1, $2, $3, $4, $5, $6)`
 
 	_, err := db.Exec(sqlStatement,
-		deviceSN, string(valueObj), timestamp)
+		deviceSN, string(valueObj), DeviceDBStruct.ID, DeviceDBStruct.AssetID, DeviceDBStruct.TenantID, timestamp)
 	if err != nil {
 		fmt.Printf(err.Error() + "\n")
 		//ErrorLogger.Println(err.Error())
 	} else {
-		logMsg := "The telemetry is inserted into the database successfully"
+		logMsg := "The telemetry inserted into the database successfully"
 		fmt.Printf(logMsg + "\n")
 		//InfoLogger.Println(logMsg)
 	}
@@ -42,31 +53,20 @@ VALUES ($1, $2, $3)`
 
 func InsertAlertDB(deviceSN string, msgType string, message string, telemetry_key string, timestamp interface{}) {
 	sqlStatement := `
-INSERT INTO device_alerts (sn, type, telemetry_key, message, timestamp)
-VALUES ($1, $2, $3, $4, $5)`
+INSERT INTO device_alerts (sn, type, telemetry_key, message, device_id, asset_id, tenant_id, timestamp)
+VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	_, err := db.Exec(sqlStatement,
-		deviceSN, msgType, message, telemetry_key, timestamp)
+		deviceSN, msgType, telemetry_key, message, DeviceDBStruct.ID, DeviceDBStruct.AssetID, DeviceDBStruct.TenantID, timestamp)
 	if err != nil {
 		fmt.Printf(err.Error() + "\n")
 		//ErrorLogger.Println(err.Error())
 	} else {
-		logMsg := "The alert is inserted into the database successfully"
+		logMsg := "The alert inserted into the database successfully"
 		fmt.Printf(logMsg + "\n")
 		//InfoLogger.Println(logMsg)
 	}
 
-	/*
-	   id INT DEFAULT unique_rowid(),
-	   sn STRING NOT NULL,
-	   device_id INT8 NOT NULL,
-
-	   type STRING(30) NOT NULL,
-	   telemetry_key STRING(50) NOT NULL,
-	   message TEXT NOT NULL,
-
-	   timestamp INT8 NOT NULL,
-	*/
 }
 
 func CheckDeviceValues(deviceSN string, deviceMap map[string]interface{}) {
@@ -80,7 +80,9 @@ func CheckDeviceValues(deviceSN string, deviceMap map[string]interface{}) {
 
 		}*/
 
-		// db - select statement
+		// DeviceDBStruct.Types
+		// DeviceDBStruct.MaxValues
+
 		if k == "temperature" && value > 50 {
 			msg = "Warning - temperature"
 			alert = true
