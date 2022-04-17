@@ -17,5 +17,7 @@
 logs/*
 *.log
 
+tmp
+
 .env
 
