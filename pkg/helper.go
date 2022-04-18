@@ -74,8 +74,6 @@ func CheckDeviceValues(deviceSN string, deviceMap map[string]interface{}) {
 	for k, v := range values {
 		//if value, ok := v.(string); ok {
 		value, _ := strconv.ParseInt(v.(string), 10, 64)
-		msg := ""
-		alert := false
 		/*switch k {
 
 		}*/
@@ -83,16 +81,13 @@ func CheckDeviceValues(deviceSN string, deviceMap map[string]interface{}) {
 		// DeviceDBStruct.Types
 		// DeviceDBStruct.MaxValues
 
+		msg := fmt.Sprintf("%s is %d", k, value)
 		if k == "temperature" && value > 50 {
-			msg = "Warning - temperature"
-			alert = true
+			fmt.Println(msg)
+			//log
+			InsertAlertDB(deviceSN, "warning", msg, k, deviceMap["ts"])
 		}
 		if k == "humidity" && value > 70 {
-			msg = "Warning - temperature"
-			alert = true
-		}
-
-		if alert {
 			fmt.Println(msg)
 			//log
 			InsertAlertDB(deviceSN, "warning", msg, k, deviceMap["ts"])
