@@ -37,17 +37,17 @@ func GetDeviceInfo(deviceSN string) Device {
 	return devDBObj
 }
 
-func InsertTelemetryDB(telemetry Telemetry) {
+func InsertTelemetryDB() {
 	sqlStatement := `
 INSERT INTO device_telemetries (values, timestamp, device_id, asset_id, tenant_id)
 VALUES ($1, $2, $3, $4, $5)`
 
 	_, err := db.Exec(sqlStatement,
-		telemetry.values,
-		telemetry.timestamp,
-		telemetry.Device.ID,
-		telemetry.Device.AssetID,
-		telemetry.Device.TenantID)
+		DeviceStruct.Telemetry.Values,
+		DeviceStruct.Telemetry.Timestamp,
+		DeviceStruct.ID,
+		DeviceStruct.AssetID,
+		DeviceStruct.TenantID)
 	if err != nil {
 		fmt.Printf(err.Error() + "\n")
 		//ErrorLogger.Println(err.Error())
@@ -58,20 +58,20 @@ VALUES ($1, $2, $3, $4, $5)`
 	}
 }
 
-func insertAlertDB(alert Alert, msg string) {
+func insertAlertDB(msg string) {
 	sqlStatement := `
 INSERT INTO device_alerts (telemetry_key, telemetry_value, severity_type, severity, message, device_id, asset_id, tenant_id)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 
 	_, err := db.Exec(sqlStatement,
-		alert.TelemetryKey,
-		alert.TelemetryValue,
-		alert.SeverityType,
-		alert.Severity,
+		DeviceStruct.Alert.TelemetryKey,
+		DeviceStruct.Alert.TelemetryValue,
+		DeviceStruct.Alert.SeverityType,
+		DeviceStruct.Alert.Severity,
 		msg,
-		alert.Device.ID,
-		alert.Device.AssetID,
-		alert.Device.TenantID)
+		DeviceStruct.ID,
+		DeviceStruct.AssetID,
+		DeviceStruct.TenantID)
 	if err != nil {
 		fmt.Printf(err.Error() + "\n")
 		//ErrorLogger.Println(err.Error())
@@ -82,25 +82,33 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 	}
 }
 
-func CheckDeviceValues(device Device, deviceMap map[string]interface{}) {
+func CheckDeviceValues(deviceMap map[string]interface{}) {
 	values := deviceMap["values"].(map[string]interface{})
 
 	for key, val := range values {
 		telemetryValue, _ := strconv.ParseFloat(val.(string), 64)
 
-		for i := 0; i < len(device.Types); i++ {
-			if key == device.Types[i] {
-				maxValue, _ := strconv.ParseFloat(device.MaxValues[i], 32)
+		for i := 0; i < len(DeviceStruct.Types); i++ {
+			if key == DeviceStruct.Types[i] {
+				maxValue, _ := strconv.ParseFloat(DeviceStruct.MaxValues[i], 32)
 
 				if telemetryValue >= (maxValue + maxValue/4.0) {
-					AlertStruct := Alert{device, key, telemetryValue, "max", "critical"}
-					msg := AlertStruct.PrepareAlertMessage()
-					insertAlertDB(AlertStruct, msg)
+					DeviceStruct.Alert.TelemetryKey = key
+					DeviceStruct.Alert.TelemetryValue = telemetryValue
+					DeviceStruct.Alert.SeverityType = "max"
+					DeviceStruct.Alert.Severity = "critical"
+
+					msg := DeviceStruct.Alert.PrepareAlertMessage()
+					insertAlertDB(msg)
 					//log
 				} else if telemetryValue >= maxValue {
-					AlertStruct := Alert{device, key, telemetryValue, "max", "warning"}
-					msg := AlertStruct.PrepareAlertMessage()
-					insertAlertDB(AlertStruct, msg)
+					DeviceStruct.Alert.TelemetryKey = key
+					DeviceStruct.Alert.TelemetryValue = telemetryValue
+					DeviceStruct.Alert.SeverityType = "max"
+					DeviceStruct.Alert.Severity = "warningl"
+
+					msg := DeviceStruct.Alert.PrepareAlertMessage()
+					insertAlertDB(msg)
 					//log
 				}
 

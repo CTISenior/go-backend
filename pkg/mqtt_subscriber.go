@@ -17,8 +17,7 @@ const ( // .env
 )
 
 var db = SetupDB()
-
-//var DeviceDBStruct DeviceDB
+var DeviceStruct Device
 
 var connectHandler mqtt.OnConnectHandler = func(c mqtt.Client) {
 	fmt.Println("Connected to MQTT broker")
@@ -53,10 +52,10 @@ var messagePubHandler mqtt.MessageHandler = func(c mqtt.Client, msg mqtt.Message
 	} else {
 		// Next -> automatically create database record based on device metadata
 
-		DeviceStruct := GetDeviceInfo(deviceSN)
+		DeviceStruct = GetDeviceInfo(deviceSN)
 
-		//if DeviceDBStruct.ID == nil {
-		if DeviceStruct.IsStructureEmpty() {
+		//if DeviceStruct.IsStructureEmpty() {
+		if DeviceStruct.ID == nil {
 			fmt.Printf("DeviceDB structure is empty\n")
 			//ErrorLogger.Println(err.Error())
 		} else {
@@ -66,10 +65,11 @@ var messagePubHandler mqtt.MessageHandler = func(c mqtt.Client, msg mqtt.Message
 			// DB Insert Operation
 			valueObj, _ := json.Marshal(deviceMap["values"])
 
-			TelemetryDBStruct := Telemetry{DeviceStruct, string(valueObj), deviceMap["ts"]}
+			DeviceStruct.Telemetry.Values = string(valueObj)
+			DeviceStruct.Telemetry.Timestamp = deviceMap["ts"]
 			//async
-			InsertTelemetryDB(TelemetryDBStruct)       //defer
-			CheckDeviceValues(DeviceStruct, deviceMap) //defer
+			InsertTelemetryDB()          //defer
+			CheckDeviceValues(deviceMap) //defer
 		}
 	}
 }
