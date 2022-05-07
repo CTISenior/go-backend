@@ -5,12 +5,6 @@ import (
 )
 
 type Device struct {
-	sn     string
-	ts     int
-	values map[string]string
-}
-
-type DeviceDB struct {
 	ID        *uuid.UUID `bun:",pk,type:uuid,default:uuid_generate_v4()"`
 	AssetID   *uuid.UUID `bun:",pk,type:uuid,default:uuid_generate_v4()"`
 	TenantID  *string
@@ -18,9 +12,19 @@ type DeviceDB struct {
 	MaxValues []string
 }
 
+type Alert struct {
+	Device
+	TelemetryKey   string
+	TelemetryValue float64
+	SeverityType   string
+	Severity       string
+}
+
 type Telemetry struct {
-	ts     int
-	values map[string]string
+	Device
+	values    string //string(valueObj)
+	timestamp interface{}
+	//values map[string]string
 }
 
 type I interface{}
