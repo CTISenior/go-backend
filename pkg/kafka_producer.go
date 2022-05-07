@@ -6,14 +6,14 @@ import (
 	"github.com/Shopify/sarama"
 )
 
-//var brokers = []string{"localhost:9091", "localhost:9092", "localhost:9093"}
+var brokers = []string{"localhost:9091", "localhost:9092", "localhost:9093"}
 
 func Producer() (sarama.SyncProducer, error) {
 	config := sarama.NewConfig()
 	config.Producer.Partitioner = sarama.NewRandomPartitioner
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Return.Successes = true
-	producer, err := sarama.NewSyncProducer(Kafka_Brokers, config)
+	producer, err := sarama.NewSyncProducer(brokers, config)
 
 	return producer, err
 }
