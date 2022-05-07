@@ -3,27 +3,26 @@ package pkg
 import (
 	"database/sql"
 	"fmt"
-	"os"
+	"strconv"
 
 	_ "github.com/lib/pq"
 )
 
 const (
-	host     = "localhost"
+	host     = ""
 	port     = 26257
-	dbname   = "iotwin"
-	user     = "root"
+	dbname   = ""
+	user     = ""
 	password = ""
 )
 
-//CockroachDB
 func SetupDB() *sql.DB {
 
-	fmt.Println(os.Getenv("MQTT_CLIENT"))
+	port, _ := strconv.Atoi(GetEnvVariable("DB_PORT"))
 
 	dbInfo := fmt.Sprintf(
 		"postgres://%s@%s:%d/%s?sslmode=disable",
-		user, host, port, dbname)
+		GetEnvVariable("DB_USER"), GetEnvVariable("DB_HOST"), port, GetEnvVariable("DB_NAME"))
 
 	db, err := sql.Open("postgres", dbInfo)
 
