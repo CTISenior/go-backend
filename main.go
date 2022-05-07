@@ -14,10 +14,9 @@ func main() {
 
 	// Init
 	Pkg.InitLogger()
-	Pkg.InitHelper()
 
 	// MQTT
-	Pkg.CreateMQTTClient()
+	Pkg.InitMQTTClient()
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, os.Interrupt)
