@@ -3,7 +3,6 @@ package pkg
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"reflect"
 	"strconv"
 	"time"
@@ -18,6 +17,8 @@ const ( // .env
 )
 
 var db = SetupDB()
+
+//var DeviceDBStruct DeviceDB
 
 var connectHandler mqtt.OnConnectHandler = func(c mqtt.Client) {
 	fmt.Println("Connected to MQTT broker")
@@ -34,7 +35,7 @@ var connectHandler mqtt.OnConnectHandler = func(c mqtt.Client) {
 
 var messagePubHandler mqtt.MessageHandler = func(c mqtt.Client, msg mqtt.Message) {
 
-	logMsg := fmt.Sprintf("Received MQTT message: %s from topic: %s", msg.Payload(), msg.Topic())
+	logMsg := fmt.Sprintf("\nReceived MQTT message: %s from topic: %s", msg.Payload(), msg.Topic())
 	fmt.Printf(logMsg + "\n")
 	//InfoLogger.Println(logMsg)
 
@@ -50,21 +51,27 @@ var messagePubHandler mqtt.MessageHandler = func(c mqtt.Client, msg mqtt.Message
 		fmt.Printf(err.Error() + "\n")
 		//ErrorLogger.Println(err.Error())
 	} else {
-
 		// Next -> automatically create database record based on device metadata
 
-		// Kafka Producer
-		ProduceMessage(deviceSN, string(jsonObj))
+		DeviceStruct := GetDeviceInfo(deviceSN)
 
-		// DB Insert Operation
-		valueObj, _ := json.Marshal(deviceMap["values"])
+		//if DeviceDBStruct.ID == nil {
+		if DeviceStruct.IsStructureEmpty() {
+			fmt.Printf("DeviceDB structure is empty\n")
+			//ErrorLogger.Println(err.Error())
+		} else {
+			// Kafka Producer
+			ProduceMessage(DeviceStruct.ID.String(), string(jsonObj))
 
-		//async
-		InsertTelemetryDB(deviceSN, valueObj, deviceMap["ts"]) //defer
-		CheckDeviceValues(deviceSN, deviceMap)                 //defer
+			// DB Insert Operation
+			valueObj, _ := json.Marshal(deviceMap["values"])
 
+			TelemetryDBStruct := Telemetry{DeviceStruct, string(valueObj), deviceMap["ts"]}
+			//async
+			InsertTelemetryDB(TelemetryDBStruct)       //defer
+			CheckDeviceValues(DeviceStruct, deviceMap) //defer
+		}
 	}
-
 }
 
 var connectLostHandler mqtt.ConnectionLostHandler = func(client mqtt.Client, err error) {
@@ -77,15 +84,15 @@ var reconnectHandler mqtt.ReconnectHandler = func(mqtt.Client, *mqtt.ClientOptio
 	//WarningLogger.Println(logMsg)
 }
 
-func CreateMQTTClient() {
+func InitMQTTClient() {
 	opts := mqtt.NewClientOptions()
 
-	brokerPort, _ := strconv.ParseInt(os.Getenv("MQTT_PORT"), 10, 64)
+	brokerPort, _ := strconv.ParseInt(GetEnvVariable("MQTT_PORT"), 10, 64)
 
-	opts.AddBroker(fmt.Sprintf("mqtt://%s:%d", os.Getenv("MQTT_HOST"), brokerPort))
-	opts.SetClientID(os.Getenv("MQTT_CLIENT"))
-	opts.SetUsername(os.Getenv("MQTT_USER"))
-	opts.SetPassword(os.Getenv("MQTT_PASSWORD"))
+	opts.AddBroker(fmt.Sprintf("mqtt://%s:%d", GetEnvVariable("MQTT_HOST"), brokerPort))
+	opts.SetClientID(GetEnvVariable("MQTT_CLIENT"))
+	opts.SetUsername(GetEnvVariable("MQTT_USER"))
+	opts.SetPassword(GetEnvVariable("MQTT_PASSWORD"))
 	// TLS/SSL
 	opts.SetOrderMatters(true)
 
