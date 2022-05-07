@@ -33,7 +33,7 @@ var producer, _ = Producer()
 func ProduceMessage(topic, message string) {
 	msg := createMessage(topic, message)
 	producer.SendMessage(msg)
-	logMsg := fmt.Sprintf("Kafka producer message - Topic %s -> message %s\n", topic, message)
+	logMsg := fmt.Sprintf("Kafka producer message - Topic %s -> message %s", topic, message)
 	fmt.Printf(logMsg + "\n")
 	//InfoLogger.Println(logMsg)
 
