@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/lib/pq"
@@ -80,40 +78,5 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`
 		logMsg := "The alert inserted into the database successfully"
 		fmt.Printf(logMsg + "\n")
 		//InfoLogger.Println(logMsg)
-	}
-}
-
-func CheckDeviceValues(deviceMap map[string]interface{}) {
-	values := deviceMap["values"].(map[string]interface{})
-
-	for key, val := range values {
-		telemetryValue, _ := strconv.ParseFloat(val.(string), 64)
-
-		for i := 0; i < len(DeviceStruct.SensorTypes); i++ {
-			if strings.ToLower(key) == strings.ToLower(DeviceStruct.SensorTypes[i]) {
-				maxValue, _ := strconv.ParseFloat(DeviceStruct.MaxValues[i], 64)
-
-				if telemetryValue >= (maxValue + maxValue/4.0) {
-					DeviceStruct.Alert.TelemetryKey = key
-					DeviceStruct.Alert.TelemetryValue = telemetryValue
-					DeviceStruct.Alert.SeverityType = "max"
-					DeviceStruct.Alert.Severity = "critical"
-
-					msg := DeviceStruct.Alert.PrepareAlertMessage()
-					insertAlertDB(msg)
-					//log
-				} else if telemetryValue >= maxValue {
-					DeviceStruct.Alert.TelemetryKey = key
-					DeviceStruct.Alert.TelemetryValue = telemetryValue
-					DeviceStruct.Alert.SeverityType = "max"
-					DeviceStruct.Alert.Severity = "warningl"
-
-					msg := DeviceStruct.Alert.PrepareAlertMessage()
-					insertAlertDB(msg)
-					//log
-				}
-
-			}
-		}
 	}
 }
