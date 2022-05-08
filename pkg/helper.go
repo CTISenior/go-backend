@@ -38,19 +38,11 @@ func CheckDeviceValues(deviceMap map[string]interface{}) {
 					//log
 				}
 
-				/*// minValue
-				if telemetryValue <= (minValue - minValue/2.0) {
-					DeviceStruct.Alert.SeverityType = "min"
-					DeviceStruct.Alert.Severity = "critical"
-					msg := DeviceStruct.Alert.PrepareAlertMessage()
-					insertAlertDB(msg)
-					//log
-				} else if telemetryValue <= minValue {
-					DeviceStruct.Alert.SeverityType = "min"
-					DeviceStruct.Alert.Severity = "warning"
-					msg := DeviceStruct.Alert.PrepareAlertMessage()
-					insertAlertDB(msg)
-					//log
+				/*switch {
+					case telemetryValue >= (maxValue + maxValue/4.0):
+					case telemetryValue >= maxValue:
+					case telemetryValue <= (minValue - minValue/2.0):
+					case telemetryValue <= (maxValue + maxValue/4.0):
 				}*/
 
 			}
