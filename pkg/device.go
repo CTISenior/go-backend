@@ -22,11 +22,11 @@ type Alert struct {
 }
 
 type Device struct {
-	ID        *uuid.UUID `bun:",pk,type:uuid,default:uuid_generate_v4()"`
-	AssetID   *uuid.UUID `bun:",pk,type:uuid,default:uuid_generate_v4()"`
-	TenantID  *string
-	Types     []string
-	MaxValues []string
+	ID          *uuid.UUID `bun:",pk,type:uuid,default:uuid_generate_v4()"`
+	AssetID     *uuid.UUID `bun:",pk,type:uuid,default:uuid_generate_v4()"`
+	TenantID    *string
+	SensorTypes []string
+	MaxValues   []string
 	Telemetry
 	Alert
 }

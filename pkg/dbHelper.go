@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/joho/godotenv"
 	"github.com/lib/pq"
@@ -23,12 +24,12 @@ func GetDeviceInfo(deviceSN string) Device {
 	//var devDBObj DeviceDB
 	devDBObj := Device{}
 
-	devSql := "SELECT id, asset_id, tenant_id, types, max_values FROM devices WHERE sn=$1"
+	devSql := "SELECT id, asset_id, tenant_id, sensor_types, max_values FROM devices WHERE sn=$1"
 	err := db.QueryRow(devSql, deviceSN).Scan(
 		&devDBObj.ID,
 		&devDBObj.AssetID,
 		&devDBObj.TenantID,
-		pq.Array(&devDBObj.Types),
+		pq.Array(&devDBObj.SensorTypes),
 		pq.Array(&devDBObj.MaxValues))
 	if err != nil {
 		fmt.Print(err.Error() + "\n")
@@ -88,9 +89,9 @@ func CheckDeviceValues(deviceMap map[string]interface{}) {
 	for key, val := range values {
 		telemetryValue, _ := strconv.ParseFloat(val.(string), 64)
 
-		for i := 0; i < len(DeviceStruct.Types); i++ {
-			if key == DeviceStruct.Types[i] {
-				maxValue, _ := strconv.ParseFloat(DeviceStruct.MaxValues[i], 32)
+		for i := 0; i < len(DeviceStruct.SensorTypes); i++ {
+			if strings.ToLower(key) == strings.ToLower(DeviceStruct.SensorTypes[i]) {
+				maxValue, _ := strconv.ParseFloat(DeviceStruct.MaxValues[i], 64)
 
 				if telemetryValue >= (maxValue + maxValue/4.0) {
 					DeviceStruct.Alert.TelemetryKey = key
