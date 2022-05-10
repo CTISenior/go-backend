@@ -26,7 +26,8 @@ type Device struct {
 	AssetID     *uuid.UUID `bun:",pk,type:uuid,default:uuid_generate_v4()"`
 	TenantID    *string
 	SensorTypes []string
-	MaxValues   []string
+	MaxValues   []float64
+	MinValues   []float64
 	Telemetry
 	Alert
 }

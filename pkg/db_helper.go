@@ -22,13 +22,14 @@ func GetDeviceInfo(deviceSN string) Device {
 	//var devDBObj DeviceDB
 	devDBObj := Device{}
 
-	devSql := "SELECT id, asset_id, tenant_id, sensor_types, max_values FROM devices WHERE sn=$1"
+	devSql := "SELECT id, asset_id, tenant_id, sensor_types, max_values, min_values FROM devices WHERE sn=$1"
 	err := db.QueryRow(devSql, deviceSN).Scan(
 		&devDBObj.ID,
 		&devDBObj.AssetID,
 		&devDBObj.TenantID,
 		pq.Array(&devDBObj.SensorTypes),
-		pq.Array(&devDBObj.MaxValues))
+		pq.Array(&devDBObj.MaxValues),
+		pq.Array(&devDBObj.MinValues))
 	if err != nil {
 		fmt.Print(err.Error() + "\n")
 	}

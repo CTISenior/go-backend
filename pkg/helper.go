@@ -18,33 +18,48 @@ func CheckDeviceValues(deviceMap map[string]interface{}) {
 
 		for i := 0; i < len(DeviceStruct.SensorTypes); i++ {
 			if strings.ToLower(key) == strings.ToLower(DeviceStruct.SensorTypes[i]) {
-				maxValue, _ := strconv.ParseFloat(DeviceStruct.MaxValues[i], 64)
+				//maxValue, _ := strconv.ParseFloat(DeviceStruct.MaxValues[i], 64)
 				//minValue, _ := strconv.ParseFloat(DeviceStruct.MinValues[i], 64)
+
+				maxValue := DeviceStruct.MaxValues[i]
+				minValue := DeviceStruct.MinValues[i]
 
 				DeviceStruct.Alert.TelemetryKey = key
 				DeviceStruct.Alert.TelemetryValue = telemetryValue
 
-				if telemetryValue >= (maxValue + maxValue/4.0) {
-					DeviceStruct.Alert.SeverityType = "max"
-					DeviceStruct.Alert.Severity = "critical"
-					msg := DeviceStruct.Alert.PrepareAlertMessage()
-					insertAlertDB(msg)
-					//log
+				/*if telemetryValue >= (maxValue + maxValue/4.0) {
+
 				} else if telemetryValue >= maxValue {
-					DeviceStruct.Alert.SeverityType = "max"
+
+				}
+
+				if telemetryValue <= minValue {
+					DeviceStruct.Alert.SeverityType = "min"
 					DeviceStruct.Alert.Severity = "warning"
 					msg := DeviceStruct.Alert.PrepareAlertMessage()
 					insertAlertDB(msg)
-					//log
-				}
-
-				/*switch {
-					case telemetryValue >= (maxValue + maxValue/4.0):
-					case telemetryValue >= maxValue:
-					case telemetryValue <= (minValue - minValue/2.0):
-					case telemetryValue <= (maxValue + maxValue/4.0):
 				}*/
 
+				switch {
+					case telemetryValue >= (maxValue + maxValue/2.0):
+						DeviceStruct.Alert.SeverityType = "max"
+						DeviceStruct.Alert.Severity = "critical"
+						msg := DeviceStruct.Alert.PrepareAlertMessage()
+						insertAlertDB(msg)
+						//log
+					case telemetryValue >= maxValue:
+						DeviceStruct.Alert.SeverityType = "max"
+						DeviceStruct.Alert.Severity = "warning"
+						msg := DeviceStruct.Alert.PrepareAlertMessage()
+						insertAlertDB(msg)
+						//log
+					case telemetryValue <= minValue:
+						DeviceStruct.Alert.SeverityType = "min"
+						DeviceStruct.Alert.Severity = "warning"
+						msg := DeviceStruct.Alert.PrepareAlertMessage()
+						insertAlertDB(msg)
+						//log
+				}
 			}
 		}
 	}
