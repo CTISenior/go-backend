@@ -8,14 +8,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-const (
-	host     = ""
-	port     = 26257
-	dbname   = ""
-	user     = ""
-	password = ""
-)
-
 func SetupDB() *sql.DB {
 
 	port, _ := strconv.Atoi(GetEnvVariable("DB_PORT"))
