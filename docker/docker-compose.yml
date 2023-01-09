@@ -1,0 +1,310 @@
+version: "3"
+
+networks:
+  iotwin-network:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+  crdb-network:
+      driver: bridge 
+
+volumes:
+  crdbdata: 
+    driver: local
+  pgdata:
+    driver: local
+  pgadmin:
+    driver: local
+
+services:
+  zookeeper1:
+    restart: always
+    image: 'wurstmeister/zookeeper:latest'
+    container_name: zookeeper1
+    hostname: zookeeper1
+    #expose:
+    #    - "2181"
+    #ports:
+    #    - '127.0.0.1:2181:2181'
+    ports:
+      - '2181:2181'
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper1:2888:3888;zookeeper2:2888:3888;zookeeper3:2888:3888
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.21
+  
+  zookeeper2:
+    restart: always
+    image: 'wurstmeister/zookeeper:latest'
+    container_name: zookeeper2
+    hostname: zookeeper2
+    #expose:
+    #    - "2182"
+    #ports:
+    #    - '127.0.0.1:2182:2182'
+    ports:
+      - '2182:2182'
+    environment:
+      ZOOKEEPER_SERVER_ID: 2
+      ZOOKEEPER_CLIENT_PORT: 2182
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper1:2888:3888;zookeeper2:2888:3888;zookeeper3:2888:3888
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.22
+
+  zookeeper3:
+    restart: always
+    image: 'wurstmeister/zookeeper:latest'
+    container_name: zookeeper3
+    hostname: zookeeper3
+    #expose:
+    #    - "2183"
+    #ports:
+    #    - '127.0.0.1:2183:2183'
+    ports:
+      - '2183:2183'
+    environment:
+      ZOOKEEPER_SERVER_ID: 3
+      ZOOKEEPER_CLIENT_PORT: 2183
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper1:2888:3888;zookeeper2:2888:3888;zookeeper3:2888:3888
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.23
+
+  kafka1:
+    restart: always
+    image: 'wurstmeister/kafka:latest'
+    container_name: kafka1
+    hostname: kafka1
+    #expose:
+    #    - "9091"
+    #ports:
+    #    - '127.0.0.1:9091:9091'
+    ports:
+      - '9091:9091'
+    environment:
+      #KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka1:19091,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9091
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      #KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka1:9091
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9091
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper1:2181,zookeeper2:2182,zookeeper3:2183
+      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      #KAFKA_DELETE_TOPIC_ENABLE: 'true' 
+      
+      #- KAFKA_ADVERTISED_HOST_NAME=127.0.0.1
+      #- KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka1:9091
+      BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092,kafka3:9093
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.31
+  
+  kafka2:
+    restart: always
+    image: 'wurstmeister/kafka:latest'
+    container_name: kafka2
+    hostname: kafka2
+    #expose:
+    #    - "9092"
+    #ports:
+    #    - '127.0.0.1:9092:9092'
+    ports:
+      - '9092:9092'
+    environment:
+      #KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka2:19092,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9092
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      #KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_BROKER_ID: 2
+      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:9092
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper1:2181,zookeeper2:2182,zookeeper3:2183
+      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      #KAFKA_DELETE_TOPIC_ENABLE: 'true' 
+      
+      #- KAFKA_ADVERTISED_HOST_NAME=127.0.0.1
+      #- KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka2:9092
+      BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092,kafka3:9093
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.32
+  
+  kafka3:
+    restart: always
+    image: 'wurstmeister/kafka:latest'
+    container_name: kafka3
+    hostname: kafka3
+    #expose:
+    #    - "9093"
+    #ports:
+    #    - '127.0.0.1:9093:9093'
+    ports:
+      - '9093:9093'
+    environment:
+      #KAFKA_ADVERTISED_LISTENERS: LISTENER_DOCKER_INTERNAL://kafka1:19091,LISTENER_DOCKER_EXTERNAL://${DOCKER_HOST_IP:-127.0.0.1}:9091
+      #KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: LISTENER_DOCKER_INTERNAL:PLAINTEXT,LISTENER_DOCKER_EXTERNAL:PLAINTEXT
+      #KAFKA_INTER_BROKER_LISTENER_NAME: LISTENER_DOCKER_INTERNAL
+      KAFKA_BROKER_ID: 3
+      KAFKA_ADVERTISED_HOST_NAME: 127.0.0.1
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka3:9093
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9093
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper1:2181,zookeeper2:2182,zookeeper3:2183
+      #KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      #KAFKA_DELETE_TOPIC_ENABLE: 'true' 
+
+      #- KAFKA_ADVERTISED_HOST_NAME=127.0.0.1
+      #- KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://kafka3:9093
+      BOOTSTRAP_SERVERS: kafka1:9091,kafka2:9092,kafka3:9093
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - zookeeper1
+      - zookeeper2
+      - zookeeper3
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.33
+
+  tb-gateway:
+    restart: always
+    image: 'thingsboard/tb-gateway'
+    container_name: tb-gateway
+    hostname: tb-gateway
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./tb-gateway/config:/thingsboard_gateway/config
+      - ./tb-gateway/logs:/thingsboard_gateway/logs
+      - ./tb-gateway/extensions:/thingsboard_gateway/extensions
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.40
+  
+  mosquitto_1:
+    restart: always
+    image: 'eclipse-mosquitto'
+    container_name: mqtt
+    hostname: mqtt
+    #expose:
+    #    - "1883"
+    #ports:
+    #    - '127.0.0.1:1883:1883'
+    ports:
+      - 1883:1883
+    #volumes:
+      #- ./mosquitto/mosquitto/config:/mosquitto/config:rw
+      #- ./mosquitto/mosquitto/data:/mosquitto/data
+      #- ./mosquitto/mosquitto/log:/mosquitto/log
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.41
+  
+  mosquitto_2:
+    restart: always
+    image: eclipse-mosquitto
+    container_name: mqtt_gateway
+    hostname: mqtt_gateway
+    ports:
+      - 11883:11883
+    #volumes:
+      #- ./mosquitto/mosquitto-gateway/config:/mosquitto/config:rw
+      #- ./mosquitto/mosquitto-gateway/data:/mosquitto/data
+      #- ./mosquitto/mosquitto-gateway/log:/mosquitto/log
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.41
+  
+  crdb_node1:
+    restart: always
+    image: cockroachdb/cockroach:v21.2.7
+    container_name: crdb_node1
+    hostname: crdb_node1
+    volumes:
+        - crdbdata:/cockroach/cockroach-data
+    command: start-single-node --insecure
+    #expose:
+    #    - "26257"
+    #    - "8080"
+    #ports:
+    #    - '127.0.0.1:26257:26257'
+    ports:
+        - "26257:26257"
+        - "8088:8080"
+
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.50
+
+  #haproxy:
+  #    image: haproxy:alpine
+
+  postgres:
+    restart: always
+    image: 'postgres'
+    container_name: pgsql_keycloak
+    hostname: pgsql_keycloak
+    #expose:
+    #    - "5432"
+    #ports:
+    #    - '127.0.0.1:5432:5432'
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: admin
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.55
+  
+  keycloak:
+    restart: always
+    #image: 'quay.io/keycloak/keycloak:latest'
+    image: 'jboss/keycloak:latest'
+    container_name: keycloak
+    hostname: keycloak
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres
+      DB_DATABASE: keycloak
+      DB_USER: keycloak
+      DB_SCHEMA: public
+      DB_PASSWORD: admin
+      #KEYCLOAK_USER: admin
+      #KEYCLOAK_PASSWORD: admin
+      #JDBC_PARAMS: "ssl=true"
+    ports:
+      - 8080:8080
+    depends_on:
+      - postgres
+    networks:
+      iotwin-network:
+        ipv4_address: 172.20.0.60
