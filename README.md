@@ -71,7 +71,6 @@ KAFKA_BROKERS=['locahost:9091', 'localhost:9092', 'localhost:9093']
 - Logging
 - Dockerizing
 - Testing
-- ...
 
 ## License
 [(Back to top)](#table-of-contents)
