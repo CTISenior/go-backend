@@ -3,7 +3,7 @@
 [![GitHub go.mod Go version of a Go module](https://img.shields.io/github/go-mod/go-version/gomods/athens.svg)](https://github.com/muratalkan/iotwin-backend)
 [![Go](https://github.com/muratalkan/iotwin-backend/actions/workflows/go.yml/badge.svg)](https://github.com/muratalkan/iotwin-backend/actions/workflows/go.yml)
 [![CodeQL](https://github.com/muratalkan/iotwin-backend/actions/workflows/codeql.yml/badge.svg)](https://github.com/muratalkan/iotwin-backend/actions/workflows/codeql.yml)
-[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE.md)
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 
 ## Table of Contents
@@ -17,15 +17,15 @@
 -------
 
 ## Features
-- Telemetry data collection (mqtt-subscriber)
-- Telemetry data processing (kafka producer)
-- Telemetry management (db crud)
-- Alert management (db crud)
+- Telemetry data collection [mqtt-subscriber]
+- Telemetry data processing [kafka producer]
+- Telemetry management [db]
+- Alert management [db]
 
 ## Prerequisites
 1. [Go](https://go.dev/dl/)
 2. [Docker Engine](https://docs.docker.com/engine/install/)
-2. [Docker Compose](https://docs.docker.com/compose/install/) (please see the [docker.compose](https://github.com/muratalkan/iotwin-backend/blob/master/docker/docker-compose.yml) file)
+2. [Docker Compose](https://docs.docker.com/compose/install/) (please see the [docker.compose](./docker/docker-compose.yml) file)
 3. [Kafka](https://kafka.apache.org/downloads)
 4. [MQTT Broker](https://mosquitto.org/download/)
 5. DB (PostgreSQL/MySQL/CockroachDB)
