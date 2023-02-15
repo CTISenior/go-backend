@@ -66,7 +66,7 @@ KAFKA_BROKERS=['locahost:9091', 'localhost:9092', 'localhost:9093']
 ```
 
 ## Roadmap
-- Code Revision and Optimization
+- Code Optimization
 - Advanced Security
 - Logging
 - Dockerizing
